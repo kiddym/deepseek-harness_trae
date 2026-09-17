@@ -82,6 +82,16 @@ test('删除任务：确认删除后消失且刷新后不出现', async ({ page 
   await expect(page.getByText('待删除任务')).not.toBeVisible();
 });
 
+test('删除任务：取消确认后任务仍在且刷新后仍在', async ({ page }) => {
+  await page.getByLabel('任务标题').fill('取消删除任务');
+  await page.getByRole('button', { name: '新增任务' }).click();
+  await page.getByRole('button', { name: '删除' }).click();
+  await page.getByRole('button', { name: '取消' }).click();
+  await expect(page.getByText('取消删除任务')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('取消删除任务')).toBeVisible();
+});
+
 test('异常路径：创建空标题被拒绝且不会新增任务', async ({ page }) => {
   const before = await taskTitles(page).count();
   await page.getByRole('button', { name: '新增任务' }).click();

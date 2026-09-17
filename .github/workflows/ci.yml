@@ -33,3 +33,13 @@ jobs:
         run: npm run build
       - name: 测试
         run: npm test
+      - name: 上传测试产物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-artifacts
+          path: |
+            ${{ env.TEST_ARTIFACT_DIR }}
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 7

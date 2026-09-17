@@ -118,7 +118,7 @@ npm run verify:restart
 
 ## CI
 
-`.github/workflows/ci.yml` 在 `ubuntu-latest` 上执行 checkout、Node.js 22（npm 缓存）、`npm ci`、将 `PLAYWRIGHT_BROWSERS_PATH` 指向 `${{ runner.temp }}/pw-browsers`、在该目录安装 Chromium 1.49.1、`npm run build` 和 `npm test`。CI 使用 `${{ runner.temp }}` 下的独立测试根目录、数据目录和报告目录，不向项目目录写入浏览器、数据库或测试报告。
+`.github/workflows/ci.yml` 在 `ubuntu-latest` 上执行 checkout、Node.js 22（npm 缓存）、`npm ci`、将 `PLAYWRIGHT_BROWSERS_PATH` 指向 `${{ runner.temp }}/pw-browsers`、在该目录安装 Chromium 1.49.1、`npm run build` 和 `npm test`。CI 使用 `${{ runner.temp }}` 下的独立测试根目录、数据目录和报告目录，不向项目目录写入浏览器、数据库或测试报告。测试之后无论成功或失败都会执行 artifact 上传，上传测试脚本的 `TEST_ARTIFACT_DIR` 以及可能存在的 `playwright-report/`，`if-no-files-found: warn`，保留 7 天。
 
 ## 假设与非目标
 
