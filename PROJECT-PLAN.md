@@ -92,14 +92,24 @@
 ### 验证
 
 - `npm run build`：通过。
-- `PLAYWRIGHT_BROWSERS_PATH=/Users/tom/Documents/Projects/.wp05-pw-browsers npm test`：11 passed。
+- `PLAYWRIGHT_BROWSERS_PATH=/Users/tom/Documents/Projects/.wp05-pw-browsers npm test`：12 passed。
 - `npm run verify:restart`：两次就绪检查、停止、重启读取任务、清理均通过。
 
 ### 下一步
 
 在 GitHub Actions 额度恢复后运行 `.github/workflows/ci.yml`，取得 Linux runner 的实际原始记录；除该远端证据外不再扩大本期范围。
 
-## 8. 决策与假设记录
+## 8. 测试基础设施三态返工工作包
+
+### 状态
+
+已完成。`test.mjs`、`ready.mjs`、`stop.mjs` 统一为通过 `0`、断言失败 `1`、脚本或环境错误 `3`；错误输出使用 `[ERROR]`，断言失败使用 `[FAIL]`；停止后的临时目录清理失败会显式报告并升级为 `3`。
+
+### 验证安排
+
+已构造并运行通过态（退出 0，12 passed）、断言失败态（退出 1）、未设置浏览器路径态（退出 3）和服务未就绪态（退出 3）；README 已记录构造方式和预期输出。下一步仍是等待 GitHub Actions 额度恢复后取得远端记录。
+
+## 9. 决策与假设记录
 
 - 采用单用户、无登录的最小模型。
 - 采用 SQLite 单文件持久化，任务硬删除。

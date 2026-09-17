@@ -76,6 +76,36 @@ npm test
 
 测试结束后，测试根目录会被清理。测试仍包含默认预览数据目录前后文件清单与内容摘要不变的隔离断言。
 
+## 测试三态与退出码
+
+测试基础设施统一使用三态退出码：
+
+- `0`：全部通过。
+- `1`：业务断言失败，通常是 Playwright 用例失败。
+- `3`：脚本或环境错误，包括构建失败、缺少 `PLAYWRIGHT_BROWSERS_PATH`、服务未就绪、Playwright 启动错误、停止失败或临时目录清理失败。
+
+输出前缀用于机器区分：`[FAIL]` 表示断言失败，`[ERROR]` 表示脚本或环境错误。清理在停止测试服务后执行；清理失败不会被吞掉，会输出 `[ERROR]` 并将最终退出码升级为 `3`。`ready` 和 `stop` 的超时、配置、信号、PID、端口和清理错误同样退出 `3`。
+
+反例构造：
+
+```bash
+# 通过：使用已准备好的浏览器目录
+PLAYWRIGHT_BROWSERS_PATH=/path/to/pw-browsers npm test
+
+# 断言失败：临时把 tests/tasks.spec.ts 的一条 expect 改为必然不成立，运行后恢复文件
+PLAYWRIGHT_BROWSERS_PATH=/path/to/pw-browsers npm test
+# 预期：[FAIL] Playwright 断言失败，退出码 1
+
+# 配置错误：不设置浏览器路径
+unset PLAYWRIGHT_BROWSERS_PATH
+npm test
+# 预期：[ERROR] 未设置 PLAYWRIGHT_BROWSERS_PATH，退出码 3
+
+# 服务未就绪：将 TEST_PORT 指向已被其他服务占用且无法启动测试实例的端口
+PLAYWRIGHT_BROWSERS_PATH=/path/to/pw-browsers TEST_PORT=4310 npm test
+# 预期：[ERROR] 测试服务未就绪，退出码 3
+```
+
 ## 重启持久化验证
 
 使用同一个外部 `DATA_DIR` 启动服务、创建任务、停止服务、重新启动、就绪检查并读取任务：
