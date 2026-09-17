@@ -1,11 +1,3 @@
 node_modules/
 dist/
-dist-server/
-data/
-test-results/
-.pw-browsers/
-.test-data-*/
-.task-app.pid
-.test-app-*.pid
-
-playwright-report/
+*.pid

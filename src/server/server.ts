@@ -4,10 +4,12 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
 
 type Task = { id: number; title: string; description: string; completed: boolean; createdAt: string; updatedAt: string };
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const dataDir = path.resolve(process.env.DATA_DIR || path.join(root, 'data'));
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const defaultDataDir = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.local', 'share', 'wp05-task-app');
+const dataDir = path.resolve(process.env.DATA_DIR || defaultDataDir);
 mkdirSync(dataDir, { recursive: true });
 const db = new DatabaseSync(path.join(dataDir, 'app.db'));
 db.exec(`CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', completed INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL); CREATE INDEX IF NOT EXISTS idx_tasks_updated ON tasks(updated_at DESC, id DESC);`);
@@ -28,7 +30,9 @@ if (process.env.NODE_ENV !== 'test' || true) {
   app.setNotFoundHandler((request, reply) => request.raw.url?.startsWith('/api/') ? reply.code(404).send({ error: { code: 'NOT_FOUND', message: '接口不存在' } }) : reply.sendFile('index.html'));
 }
 const port = Number(process.env.PORT || 4310);
-writeFileSync(path.resolve(process.env.PID_FILE || path.join(root, '.task-app.pid')), String(process.pid));
-const cleanup = () => { try { unlinkSync(path.resolve(process.env.PID_FILE || path.join(root, '.task-app.pid'))); } catch {} };
+const defaultPidFile = path.join(tmpdir(), 'wp05-task-app', `app-${port}.pid`);
+mkdirSync(path.dirname(path.resolve(process.env.PID_FILE || defaultPidFile)), { recursive: true });
+writeFileSync(path.resolve(process.env.PID_FILE || defaultPidFile), String(process.pid));
+const cleanup = () => { try { unlinkSync(path.resolve(process.env.PID_FILE || defaultPidFile)); } catch {} };
 process.once('SIGTERM', async () => { await app.close(); cleanup(); process.exit(0); }); process.once('SIGINT', async () => { await app.close(); cleanup(); process.exit(0); }); process.once('exit', cleanup);
 app.listen({ port, host: '127.0.0.1' }).catch((err) => { console.error(err); process.exit(1); });

@@ -65,7 +65,25 @@
 
 本地已完成构建和 10/10 场景验证；远端 Linux CI 尚未执行，因此下一步只需补充远端证据，不扩大产品范围。
 
-## 6. 决策与假设记录
+## 6. 布局与资产位置修正工作包
+
+### 状态
+
+已完成。项目目录内不再保存浏览器资产、测试数据库、测试报告或默认预览数据库；服务端产物统一输出到 `dist/server/`。
+
+### 约定
+
+- 本地浏览器由 `PLAYWRIGHT_BROWSERS_PATH` 定位，默认使用项目外的 `/Users/tom/Documents/Projects/.wp05-pw-browsers`。
+- CI 浏览器放在 `${{ runner.temp }}/pw-browsers`，由工作流显式安装。
+- 测试数据、Playwright outputDir 和 HTML 报告放在系统临时目录的测试根目录，测试结束清理。
+- 默认预览数据库位于 `$HOME/.local/share/wp05-task-app/app.db`，可由 `DATA_DIR` 覆盖。
+- 当前验证：`npm run build` 通过，`npm test` 自动先构建并通过 10/10 用例。
+
+### 下一步
+
+观察 GitHub Actions Linux runner 的实际结果；若远端环境无误，则完成第一期交付收口。
+
+## 7. 决策与假设记录
 
 - 采用单用户、无登录的最小模型。
 - 采用 SQLite 单文件持久化，任务硬删除。

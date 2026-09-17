@@ -8,7 +8,7 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
-    "start": "node dist-server/server.js",
+    "start": "node dist/server/server.js",
     "ready": "node scripts/ready.mjs",
     "stop": "node scripts/stop.mjs",
     "test": "node scripts/test.mjs"

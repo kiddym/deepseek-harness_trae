@@ -8,10 +8,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/pw-browsers
       PORT: 4310
       TEST_PORT: 4311
-      TEST_DATA_DIR: ${{ github.workspace }}/.test-data-ci
+      TEST_ROOT: ${{ runner.temp }}/wp05-task-app-test-4311
+      TEST_DATA_DIR: ${{ runner.temp }}/wp05-task-app-test-4311/data
+      TEST_ARTIFACT_DIR: ${{ runner.temp }}/wp05-task-app-test-4311/artifacts
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
