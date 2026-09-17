@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 const port = Number(process.env.TEST_PORT || 4311); const dataDir = process.env.TEST_DATA_DIR || `.test-data-${port}`; const pidFile = `.test-app-${port}.pid`; rmSync(dataDir, { recursive: true, force: true }); mkdirSync(dataDir, { recursive: true });
-const child = spawn(process.execPath, ['dist-server/server.js'], { env: { ...process.env, NODE_ENV: 'test', PORT: String(port), DATA_DIR: dataDir }, stdio: 'inherit' }); writeFileSync(pidFile, String(child.pid)); let code = 1;
+const child = spawn(process.execPath, ['dist-server/server.js'], { env: { ...process.env, NODE_ENV: 'test', PORT: String(port), DATA_DIR: dataDir, PID_FILE: pidFile }, stdio: 'inherit' }); writeFileSync(pidFile, String(child.pid)); let code = 1;
 try { const ready = spawn(process.execPath, ['scripts/ready.mjs'], { env: { ...process.env, PORT: String(port), READY_TIMEOUT_MS: '30000' }, stdio: 'inherit' }); if ((await new Promise((resolve) => ready.on('exit', resolve))) !== 0) throw new Error('测试服务未就绪'); const test = spawn('npx', ['playwright', 'test'], { env: { ...process.env, PORT: String(port), PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH || '.pw-browsers' }, stdio: 'inherit' }); code = await new Promise((resolve) => test.on('exit', resolve)); } finally { child.kill('SIGTERM'); await new Promise((resolve) => child.on('exit', resolve)); try { rmSync(pidFile); } catch {} }
 process.exit(code);

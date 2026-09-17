@@ -1,6 +1,6 @@
 # 项目计划
 
-## 1. 当前工作包：文档基线
+## 1. 当前工作包：测试与 CI
 
 ### 目标
 
@@ -36,40 +36,36 @@
 
 ## 3. 状态
 
-- 当前状态：最小可运行闭环已完成，构建、启动和自动化测试均已验证。
+- 当前状态：测试与 CI 工作包已完成：构建、独立场景测试和 CI 配置均已完成。
 - 范围状态：第一期范围已冻结；登录、多用户、权限、文件上传、外部 API、SSR、微服务、桌面安装包、收费与部署均明确排除。
-- 风险状态：已按环境事实使用 Node 22.22.2 与项目内 Playwright 浏览器缓存；尚未配置 GitHub Actions 工作流，属于后续 CI 工作包。
+- 风险状态：本地已使用项目内 Chromium 1148 验证；GitHub Actions 配置已加入，但尚未在远端 runner 上执行验证。
 
-## 4. 下一步工作包：实现最小可运行闭环
+## 4. 本工作包产物与验证
+
+- Playwright 与 `playwright` 均锁定为 1.49.1。
+- `playwright.config.ts` 使用 `channel: "chromium"`，浏览器路径由 `PLAYWRIGHT_BROWSERS_PATH` 提供。
+- `tests/tasks.spec.ts` 包含 10 个独立中文场景，覆盖核心流程、异常路径、接口边界和默认数据目录隔离。
+- `.github/workflows/ci.yml` 在 Ubuntu、Node 22 上执行依赖安装、Chromium 安装、构建和统一测试脚本。
+- 本地验证结果：`npm run build` 通过，10/10 Playwright 场景通过。
+
+## 5. 下一步工作包：CI 远端验证与交付收口
 
 ### 目标
 
-按 DESIGN.md 的契约实现可启动的前后端应用，并完成任务创建、列表、编辑保存、刷新持久化、完成切换和删除。
+在 GitHub Actions 的 `ubuntu-latest` runner 上验证与本地一致的 Node 22、Playwright 1.49.1、Chromium 安装、构建和隔离测试链路。
 
 ### 范围
 
-1. 初始化 React + TypeScript + Vite 与 Node + TypeScript + Fastify 工程。
-2. 接入 `node:sqlite`，创建 `tasks` 表和任务数据访问层。
-3. 实现 `/api/tasks` 及任务更新、完成切换、删除接口。
-4. 实现单页面前端及加载、空态、错误、编辑和提交状态。
-5. 添加统一启动脚本和本地 SQLite 数据路径配置。
-
-### 产物
-
-- 可构建、可启动的前后端代码。
-- 与 DESIGN.md 一致的 HTTP API。
-- 可持久化任务数据库。
-- 面向用户主流程的页面。
-- 实现阶段的运行说明补充（若脚本或环境约定需要补充）。
+1. 提交并观察 `.github/workflows/ci.yml` 的 push 或 pull request 运行结果。
+2. 若 Linux runner 失败，依据日志修正跨平台脚本或浏览器路径问题。
+3. 确认测试报告目录保持忽略，不进入提交内容。
+4. 完成第一期交付收口，记录远端 CI 结果和未验证项。
 
 ### 验证安排
 
-- 先做 TypeScript 构建和 API 基础验证。
-- 再用 Playwright Test 验证创建、刷新、编辑、完成和删除主流程。
-- 最后配置并运行 GitHub Actions Linux CI。
-- 发现 Node 版本或 `node:sqlite` 兼容性问题时，按 DELIVERY-STRATEGY.md 的重评触发更新计划和记录。
+本地已完成构建和 10/10 场景验证；远端 Linux CI 尚未执行，因此下一步只需补充远端证据，不扩大产品范围。
 
-## 5. 决策与假设记录
+## 6. 决策与假设记录
 
 - 采用单用户、无登录的最小模型。
 - 采用 SQLite 单文件持久化，任务硬删除。

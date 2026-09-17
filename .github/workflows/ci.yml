@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
+      PORT: 4310
+      TEST_PORT: 4311
+      TEST_DATA_DIR: ${{ github.workspace }}/.test-data-ci
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 配置 Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 安装依赖
+        run: npm ci
+      - name: 安装 Chromium
+        run: npx playwright@1.49.1 install chromium
+      - name: 构建
+        run: npm run build
+      - name: 测试
+        run: npm test

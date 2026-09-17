@@ -28,7 +28,7 @@ if (process.env.NODE_ENV !== 'test' || true) {
   app.setNotFoundHandler((request, reply) => request.raw.url?.startsWith('/api/') ? reply.code(404).send({ error: { code: 'NOT_FOUND', message: '接口不存在' } }) : reply.sendFile('index.html'));
 }
 const port = Number(process.env.PORT || 4310);
-writeFileSync(path.join(root, '.task-app.pid'), String(process.pid));
-const cleanup = () => { try { unlinkSync(path.join(root, '.task-app.pid')); } catch {} };
-process.once('SIGTERM', cleanup); process.once('SIGINT', cleanup); process.once('exit', cleanup);
+writeFileSync(path.resolve(process.env.PID_FILE || path.join(root, '.task-app.pid')), String(process.pid));
+const cleanup = () => { try { unlinkSync(path.resolve(process.env.PID_FILE || path.join(root, '.task-app.pid'))); } catch {} };
+process.once('SIGTERM', async () => { await app.close(); cleanup(); process.exit(0); }); process.once('SIGINT', async () => { await app.close(); cleanup(); process.exit(0); }); process.once('exit', cleanup);
 app.listen({ port, host: '127.0.0.1' }).catch((err) => { console.error(err); process.exit(1); });

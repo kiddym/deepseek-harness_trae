@@ -53,6 +53,10 @@ npm run stop
 
 `stop` 会检查进程已不存在且端口已释放；任一条件不满足都会以非零状态退出并打印原因。手动执行 `npm start` 时不会自动创建 PID 文件，因此可用 `PORT` 配合系统进程工具停止，或通过 `npm test` 让测试脚本负责测试实例生命周期。
 
+## 就绪检查与停止
+
+`npm run ready` 会轮询 `GET /api/health`，直到服务确认 SQLite 读操作成功；超时会以非零状态退出并打印最后响应。`npm run stop` 会终止 `.task-app.pid` 指向的服务，并同时确认进程不存在且端口已释放。
+
 ## 主要假设与未做事项
 
 - 第一阶段是单用户本地应用，不做登录、多用户、权限、上传、外部 API、SSR、微服务、桌面安装包、收费和部署。
@@ -61,3 +65,9 @@ npm run stop
 - 标题去除首尾空白后不能为空；编辑和创建均由服务端与前端校验。
 - 默认使用 Chromium 作为 Playwright 基线。
 - 当前未实现账号、搜索、标签、优先级、截止日期、提醒、附件或多端同步。
+
+## CI
+
+`.github/workflows/ci.yml` 在 `ubuntu-latest` 上执行 checkout、Node.js 22（npm 缓存）、`npm ci`、使用 `PLAYWRIGHT_BROWSERS_PATH` 指向工作区 `.pw-browsers` 安装 Chromium、`npm run build` 和 `npm test`。CI 与本地共用同一套 npm 脚本，只通过环境变量区分浏览器目录、端口和测试数据库目录。
+
+Playwright 与浏览器基线固定为 `1.49.1`。本地测试要求使用项目内 `.pw-browsers`，CI 使用 runner 工作区内的同名目录。
