@@ -1,0 +1,11 @@
+name: ci-min3
+on:
+  push:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PORT: 4310
+      TEST_PORT: 4311
+    steps:
+      - run: echo "port=$PORT testport=$TEST_PORT"
