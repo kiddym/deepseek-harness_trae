@@ -62,7 +62,7 @@ npm run stop
 npm test
 ```
 
-`npm test` 会先执行当前源码的 `npm run build`，构建失败立即中止，然后使用独立端口和独立 `DATA_DIR` 启动测试实例，运行 Playwright 1.49.1，最后停止服务并清理测试数据、trace、截图和 HTML 报告。默认测试根目录为系统临时目录 `/tmp/wp05-task-app-test-4311/`（macOS 通常位于系统临时目录实际路径），不会读写默认预览数据库。
+`npm test` 会先执行当前源码的 `npm run build`，构建失败立即中止，然后使用独立端口和独立 `DATA_DIR` 启动测试实例，运行 Playwright 1.49.1，最后停止服务并只清理测试数据目录和 PID 文件。报告、JSON 结果、截图和 trace 会保留在系统临时目录下的固定测试根目录中。默认测试根目录为系统临时目录 `/tmp/wp05-task-app-test-4311/`（macOS 通常位于系统临时目录实际路径），不会读写默认预览数据库。
 
 可覆盖测试参数：
 
@@ -74,7 +74,7 @@ PLAYWRIGHT_BROWSERS_PATH=/path/to/pw-browsers \
 npm test
 ```
 
-测试结束后，测试根目录会被清理。测试仍包含默认预览数据目录前后文件清单与内容摘要不变的隔离断言。
+每次运行开始前会先清空该测试根目录再生成新产物；运行结束后只删除其中的测试数据和 PID 文件，artifact 目录不会被删除。脚本会输出 `artifacts: <绝对路径>`，便于本地或 CI 取用。测试仍包含默认预览数据目录前后文件清单与内容摘要不变的隔离断言。
 
 ## 测试三态与退出码
 
@@ -118,7 +118,7 @@ npm run verify:restart
 
 ## CI
 
-`.github/workflows/ci.yml` 在 `ubuntu-latest` 上执行 checkout、Node.js 22（npm 缓存）、`npm ci`、将 `PLAYWRIGHT_BROWSERS_PATH` 指向 `${{ runner.temp }}/pw-browsers`、在该目录安装 Chromium 1.49.1、`npm run build` 和 `npm test`。CI 使用 `${{ runner.temp }}` 下的独立测试根目录、数据目录和报告目录，不向项目目录写入浏览器、数据库或测试报告。测试之后无论成功或失败都会执行 artifact 上传，上传测试脚本的 `TEST_ARTIFACT_DIR` 以及可能存在的 `playwright-report/`，`if-no-files-found: warn`，保留 7 天。
+`.github/workflows/ci.yml` 在 `ubuntu-latest` 上执行 checkout、Node.js 22（npm 缓存）、`npm ci`、将 `PLAYWRIGHT_BROWSERS_PATH` 指向 `${{ runner.temp }}/pw-browsers`、在该目录安装 Chromium 1.49.1、`npm run build` 和 `npm test`。CI 使用 `${{ runner.temp }}` 下的独立测试根目录、数据目录和报告目录，不向项目目录写入浏览器、数据库或测试报告。测试之后无论成功或失败都会执行 artifact 上传，上传测试脚本的 `TEST_ARTIFACT_DIR`（其中包含 HTML 报告、`results.json`、失败截图和 trace）以及可能存在的项目内 `playwright-report/`，`if-no-files-found: warn`，保留 7 天。测试脚本不会在上传前删除 artifact 目录。
 
 ## 假设与非目标
 

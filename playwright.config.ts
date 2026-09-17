@@ -12,5 +12,5 @@ export default defineConfig({
     channel: 'chromium',
     trace: 'retain-on-failure'
   },
-  reporter: [['list'], ['html', { open: 'never', outputFolder: path.join(artifactDir, 'playwright-report') }]]
+  reporter: [['list'], ['json', { outputFile: path.join(artifactDir, 'results.json') }], ['html', { open: 'never', outputFolder: path.join(artifactDir, 'playwright-report') }]]
 });

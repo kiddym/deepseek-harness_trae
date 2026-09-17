@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -42,8 +42,11 @@ try {
 } catch (error) { console.error(`[ERROR] 测试脚本异常：${error.message}`); scriptError = true; }
 finally {
   await stopChild();
-  try { rmSync(testRoot, { recursive: true, force: true }); console.log(`cleaned: ${testRoot}`); }
-  catch (error) { console.error(`[ERROR] 测试产物清理失败：${error.message}`); scriptError = true; }
+  try { rmSync(dataDir, { recursive: true, force: true }); console.log(`cleaned data: ${dataDir}`); }
+  catch (error) { console.error(`[ERROR] 测试数据清理失败：${error.message}`); scriptError = true; }
+  try { unlinkSync(pidFile); console.log(`cleaned pid: ${pidFile}`); }
+  catch (error) { if (error.code !== 'ENOENT') { console.error(`[ERROR] PID 文件清理失败：${error.message}`); scriptError = true; } }
+  console.log(`artifacts: ${path.resolve(artifactDir)}`);
 }
 if (scriptError) process.exit(ERROR);
 process.exit(result);
