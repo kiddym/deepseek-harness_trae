@@ -36,9 +36,9 @@
 
 ## 3. 状态
 
-- 当前状态：测试与 CI 工作包已完成：构建、独立场景测试和 CI 配置均已完成。
+- 当前状态：测试与 CI 工作包已完成，且已修复测试前未构建与完成状态不落库两个缺陷。
 - 范围状态：第一期范围已冻结；登录、多用户、权限、文件上传、外部 API、SSR、微服务、桌面安装包、收费与部署均明确排除。
-- 风险状态：本地已使用项目内 Chromium 1148 验证；GitHub Actions 配置已加入，但尚未在远端 runner 上执行验证。
+- 风险状态：本地已使用项目内 Chromium 1148 验证；GitHub Actions 配置已加入，但尚未在远端 runner 上执行验证。当前本地构建与测试均通过。
 
 ## 4. 本工作包产物与验证
 
@@ -46,7 +46,7 @@
 - `playwright.config.ts` 使用 `channel: "chromium"`，浏览器路径由 `PLAYWRIGHT_BROWSERS_PATH` 提供。
 - `tests/tasks.spec.ts` 包含 10 个独立中文场景，覆盖核心流程、异常路径、接口边界和默认数据目录隔离。
 - `.github/workflows/ci.yml` 在 Ubuntu、Node 22 上执行依赖安装、Chromium 安装、构建和统一测试脚本。
-- 本地验证结果：`npm run build` 通过，10/10 Playwright 场景通过。
+- 本地验证结果：`npm run build` 通过；直接执行 `npm test` 会先构建当前源码，随后 10/10 Playwright 场景通过；完成状态刷新后仍正确保留。
 
 ## 5. 下一步工作包：CI 远端验证与交付收口
 
