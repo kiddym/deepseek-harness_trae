@@ -85,10 +85,10 @@ test('删除任务：确认删除后消失且刷新后不出现', async ({ page 
 test('异常路径：创建空标题被拒绝且不会新增任务', async ({ page }) => {
   const before = await taskTitles(page).count();
   await page.getByRole('button', { name: '新增任务' }).click();
-  await expect(page.getByRole('alert')).toHaveText('标题不能为空');
+  await expect(page.getByRole('alert')).toContainText('标题不能为空');
   await page.getByLabel('任务标题').fill('   ');
   await page.getByRole('button', { name: '新增任务' }).click();
-  await expect(page.getByRole('alert')).toHaveText('标题不能为空');
+  await expect(page.getByRole('alert')).toContainText('标题不能为空');
   await expect(taskTitles(page)).toHaveCount(before);
 });
 
@@ -98,7 +98,7 @@ test('异常路径：空标题保存编辑被拒绝', async ({ page }) => {
   await page.getByRole('button', { name: '编辑' }).click();
   await page.getByLabel('编辑标题').fill(' ');
   await page.getByRole('button', { name: '保存' }).click();
-  await expect(page.getByRole('alert')).toHaveText('标题不能为空');
+  await expect(page.getByRole('alert')).toContainText('标题不能为空');
   await expect(page.getByLabel('编辑标题')).toBeVisible();
 });
 
@@ -108,6 +108,34 @@ test('接口边界：不存在任务返回 404，非法 id 返回 4xx', async ({
   const invalid = await page.request.patch('/api/tasks/not-an-id', { data: { title: '非法' } });
   expect(invalid.status()).toBeGreaterThanOrEqual(400);
   expect(invalid.status()).toBeLessThan(500);
+});
+
+test('异常路径：网络失败时按钮恢复、显示提示并可重试', async ({ page }) => {
+  await page.route('**/api/tasks', (route) => route.abort());
+  await page.getByLabel('任务标题').fill('网络失败后重试');
+  await page.getByRole('button', { name: '新增任务' }).click();
+  await expect(page.getByRole('alert')).toContainText('网络请求失败，请重试');
+  await expect(page.getByRole('button', { name: '新增任务' })).toBeEnabled();
+  await page.unroute('**/api/tasks');
+  await page.getByRole('button', { name: '重试' }).click();
+  await expect(page.getByRole('alert')).not.toBeVisible();
+  await page.getByRole('button', { name: '新增任务' }).click();
+  await expect(page.getByText('网络失败后重试')).toBeVisible();
+});
+
+test('异常路径：服务端 5xx 时显示提示且可重试', async ({ page }) => {
+  await page.route('**/api/tasks', async (route) => {
+    if (route.request().method() === 'POST') await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { message: '服务暂不可用' } }) });
+    else await route.continue();
+  });
+  await page.getByLabel('任务标题').fill('服务恢复后重试');
+  await page.getByRole('button', { name: '新增任务' }).click();
+  await expect(page.getByRole('alert')).toContainText('服务暂不可用');
+  await expect(page.getByRole('button', { name: '新增任务' })).toBeEnabled();
+  await page.unroute('**/api/tasks');
+  await page.getByRole('button', { name: '重试' }).click();
+  await page.getByRole('button', { name: '新增任务' }).click();
+  await expect(page.getByText('服务恢复后重试')).toBeVisible();
 });
 
 test('测试数据隔离：运行前后默认 data 目录文件内容不变', async ({ page }) => {

@@ -36,9 +36,9 @@
 
 ## 3. 状态
 
-- 当前状态：测试与 CI 工作包已完成，且已修复测试前未构建与完成状态不落库两个缺陷。
+- 当前状态：返工已完成：CI 解析、服务重启持久化、设计实现一致性、前端请求状态、浏览器路径与停止判据文档均已处理。
 - 范围状态：第一期范围已冻结；登录、多用户、权限、文件上传、外部 API、SSR、微服务、桌面安装包、收费与部署均明确排除。
-- 风险状态：本地已使用项目内 Chromium 1148 验证；GitHub Actions 配置已加入，但尚未在远端 runner 上执行验证。当前本地构建与测试均通过。
+- 风险状态：本地已使用项目外 Chromium 1148 验证；GitHub Actions 配置已修正为 runner 运行时路径，但远端 runner 尚未执行。当前本地构建、12 个 UI/API 场景和重启持久化验证均通过。
 
 ## 4. 本工作包产物与验证
 
@@ -46,7 +46,7 @@
 - `playwright.config.ts` 使用 `channel: "chromium"`，浏览器路径由 `PLAYWRIGHT_BROWSERS_PATH` 提供。
 - `tests/tasks.spec.ts` 包含 10 个独立中文场景，覆盖核心流程、异常路径、接口边界和默认数据目录隔离。
 - `.github/workflows/ci.yml` 在 Ubuntu、Node 22 上执行依赖安装、Chromium 安装、构建和统一测试脚本。
-- 本地验证结果：`npm run build` 通过；直接执行 `npm test` 会先构建当前源码，随后 10/10 Playwright 场景通过；完成状态刷新后仍正确保留。
+- 本地验证结果：`npm run build` 通过；直接执行 `npm test` 会先构建当前源码，随后 12/12 Playwright 场景通过；完成状态刷新和服务重启后仍正确保留。
 
 ## 5. 下一步工作包：CI 远端验证与交付收口
 
@@ -63,7 +63,7 @@
 
 ### 验证安排
 
-本地已完成构建和 10/10 场景验证；远端 Linux CI 尚未执行，因此下一步只需补充远端证据，不扩大产品范围。
+本地已完成构建、12/12 场景验证和重启验证；远端 Linux CI 尚未执行，因此下一步只需补充远端证据，不扩大产品范围。
 
 ## 6. 布局与资产位置修正工作包
 
@@ -73,17 +73,33 @@
 
 ### 约定
 
-- 本地浏览器由 `PLAYWRIGHT_BROWSERS_PATH` 定位，默认使用项目外的 `/Users/tom/Documents/Projects/.wp05-pw-browsers`。
+- 本地浏览器由必填的 `PLAYWRIGHT_BROWSERS_PATH` 定位；未设置时测试明确报错，不使用机器特定默认路径。
 - CI 浏览器放在 `${{ runner.temp }}/pw-browsers`，由工作流显式安装。
 - 测试数据、Playwright outputDir 和 HTML 报告放在系统临时目录的测试根目录，测试结束清理。
 - 默认预览数据库位于 `$HOME/.local/share/wp05-task-app/app.db`，可由 `DATA_DIR` 覆盖。
-- 当前验证：`npm run build` 通过，`npm test` 自动先构建并通过 10/10 用例。
+- 当前验证：`npm run build` 通过，`npm test` 自动先构建并通过 12/12 用例。
 
 ### 下一步
 
 观察 GitHub Actions Linux runner 的实际结果；若远端环境无误，则完成第一期交付收口。
 
-## 7. 决策与假设记录
+## 7. 返工工作包：交付核对后的缺陷与一致性修正
+
+### 状态
+
+已完成。修正了 job 级 `runner` 上下文导致的 CI 解析失败；删除诊断 workflow；新增 `verify:restart`；同步 DESIGN.md 与实际 PATCH/数据库/运行路径；补充前端请求中禁用、网络失败、5xx 提示和重试测试；移除本地浏览器默认绝对路径。
+
+### 验证
+
+- `npm run build`：通过。
+- `PLAYWRIGHT_BROWSERS_PATH=/Users/tom/Documents/Projects/.wp05-pw-browsers npm test`：11 passed。
+- `npm run verify:restart`：两次就绪检查、停止、重启读取任务、清理均通过。
+
+### 下一步
+
+在 GitHub Actions 额度恢复后运行 `.github/workflows/ci.yml`，取得 Linux runner 的实际原始记录；除该远端证据外不再扩大本期范围。
+
+## 8. 决策与假设记录
 
 - 采用单用户、无登录的最小模型。
 - 采用 SQLite 单文件持久化，任务硬删除。

@@ -7,13 +7,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/pw-browsers
-      PORT: 4310
-      TEST_PORT: 4311
-      TEST_ROOT: ${{ runner.temp }}/wp05-task-app-test-4311
-      TEST_DATA_DIR: ${{ runner.temp }}/wp05-task-app-test-4311/data
-      TEST_ARTIFACT_DIR: ${{ runner.temp }}/wp05-task-app-test-4311/artifacts
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -22,6 +15,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: 准备测试路径（项目外）
+        run: |
+          {
+            echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/pw-browsers"
+            echo "TEST_ROOT=$RUNNER_TEMP/wp05-task-app-test-4311"
+            echo "TEST_DATA_DIR=$RUNNER_TEMP/wp05-task-app-test-4311/data"
+            echo "TEST_ARTIFACT_DIR=$RUNNER_TEMP/wp05-task-app-test-4311/artifacts"
+            echo "PORT=4310"
+            echo "TEST_PORT=4311"
+          } >> "$GITHUB_ENV"
       - name: 安装依赖
         run: npm ci
       - name: 安装 Chromium

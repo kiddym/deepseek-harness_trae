@@ -11,7 +11,8 @@
     "start": "node dist/server/server.js",
     "ready": "node scripts/ready.mjs",
     "stop": "node scripts/stop.mjs",
-    "test": "node scripts/test.mjs"
+    "test": "node scripts/test.mjs",
+    "verify:restart": "node scripts/restart-check.mjs"
   },
   "dependencies": {
     "@fastify/static": "^8.2.0",

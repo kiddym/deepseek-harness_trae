@@ -12,9 +12,10 @@
 npm install
 ```
 
-本地 Playwright 浏览器通过 `PLAYWRIGHT_BROWSERS_PATH` 指定。默认位置是项目外的 `/Users/tom/Documents/Projects/.wp05-pw-browsers`，其中应已有与 Playwright 1.49.1 匹配的 Chromium 1148；本地测试不会下载浏览器。如需覆盖：
+Playwright 浏览器必须通过 `PLAYWRIGHT_BROWSERS_PATH` 指定；未设置时测试会明确报错并提示准备浏览器。项目不内置浏览器资产，本地准备方式例如：
 
 ```bash
+npx playwright@1.49.1 install chromium
 PLAYWRIGHT_BROWSERS_PATH=/path/to/pw-browsers npm test
 ```
 
@@ -53,7 +54,7 @@ npm run ready
 npm run stop
 ```
 
-`ready` 会轮询 `GET /api/health`，直到确认 SQLite 读操作成功；超时会以非零状态退出并打印最后响应。`stop` 会终止 PID 文件指向的服务，并确认进程不存在且端口已释放；PID 文件位于系统临时目录下的 `wp05-task-app/`，测试实例使用其独立临时根目录，并在停止时清理。
+`ready` 会轮询 `GET /api/health`，直到确认 SQLite 读操作成功；超时会以非零状态退出并打印最后响应。`stop` 的成功判据有三条：进程不存在、端口已释放、停止命令运行记录已结束且退出码为 0。成功输出形如 `stopped: pid 5351, port 4310 released`；失败时以非零退出，并输出 `stop failed: pid <pid> still alive or port <port> still occupied` 或无法发送信号的明确原因。PID 文件位于系统临时目录下的 `wp05-task-app/`，测试实例使用其独立临时根目录，并在停止时清理。
 
 ## 测试
 
@@ -69,11 +70,21 @@ npm test
 TEST_PORT=4321 \
 TEST_ROOT=/tmp/wp05-task-app-test-4321 \
 DATA_DIR=/tmp/unused-preview-data \
-PLAYWRIGHT_BROWSERS_PATH=/Users/tom/Documents/Projects/.wp05-pw-browsers \
+PLAYWRIGHT_BROWSERS_PATH=/path/to/pw-browsers \
 npm test
 ```
 
 测试结束后，测试根目录会被清理。测试仍包含默认预览数据目录前后文件清单与内容摘要不变的隔离断言。
+
+## 重启持久化验证
+
+使用同一个外部 `DATA_DIR` 启动服务、创建任务、停止服务、重新启动、就绪检查并读取任务：
+
+```bash
+npm run verify:restart
+```
+
+该命令会输出创建结果、两次就绪结果、停止结果、重启后的任务列表和 `restart persistence: passed`，验证服务重启后 SQLite 数据仍在。验证完成后会清理临时数据目录。
 
 ## CI
 
